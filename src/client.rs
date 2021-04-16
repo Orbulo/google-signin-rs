@@ -5,7 +5,7 @@ use hyper_rustls::HttpsConnector;
 use hyper_openssl::HttpsConnector;
 use serde;
 use serde_json;
-use bytes::buf::ext::BufExt;
+use bytes::Buf;
 
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
@@ -95,10 +95,10 @@ impl CachedCerts {
 impl Client {
     pub fn new() -> Client {
         #[cfg(feature = "with-rustls")]
-        let ssl = HttpsConnector::new();
+        let ssl = HttpsConnector::with_native_roots();
         #[cfg(feature = "with-openssl")]
         let ssl = HttpsConnector::new().expect("unable to build HttpsConnector");
-        let client = HyperClient::builder().http1_max_buf_size(0x2000).keep_alive(false).build(ssl);
+        let client = HyperClient::builder().http1_max_buf_size(0x2000).pool_max_idle_per_host(0).build(ssl);
         Client { client, audiences: vec![], hosted_domains: vec![] }
     }
 
